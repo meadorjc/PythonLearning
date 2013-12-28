@@ -1,4 +1,5 @@
-#caleb meador 12/23/2013 meadorjc at gmail\
+#caleb meador 12/23/2013 meadorjc at gmail
+#practice creating a dict from an input file
 #adapted from tutorial http://www.wellho.net/resources/ex.php?item=y201/lfan
 
 """This is a program which reads a web server access log
@@ -29,7 +30,7 @@ counter = {}                #dict constructor
 #Parse the file, counting the number of accesses from each host
 for line in fh.readlines():
   parts = space.split(line) #create a list delim'd @ space
-  #c-notation => counter{"parts[0]":"(parts[0]? parts[0]+1 : 0)"}
+  #c-notation == counter{"parts[0]":"(parts[0]? parts[0]+1 : 0)"}
   counter[parts[0]] = counter.get(parts[0],0) + 1
   
 #sort a list of the visiting hosts

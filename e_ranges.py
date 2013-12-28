@@ -1,3 +1,4 @@
+#Caleb Meador meadorjc at gmail.com
 #range is now a generator
 #xrange is gone
 

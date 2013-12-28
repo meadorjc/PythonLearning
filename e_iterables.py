@@ -1,3 +1,4 @@
+#Caleb Meador meadorjc at gmail.com
 #taken from
 #http://stackoverflow.com/questions/231767/the-python-yield-keyword-explained
 

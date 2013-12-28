@@ -1,3 +1,4 @@
+#Caleb Meador meadorjc at gmail.com
 print("How old are you?"),
 age = input()
 print("How tall are you?"),

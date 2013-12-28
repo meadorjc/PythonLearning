@@ -1,3 +1,4 @@
+#Caleb Meador meadorjc at gmail.com
 print('hi')
 print("now we got it")
 print("in python 3, () are required to use print")
