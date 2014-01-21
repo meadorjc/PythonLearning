@@ -2,11 +2,11 @@
 #testing for periodic table matching
 
 
-
+def howdy():
+  print("hi there")
 
 class PeriodicCoordinateMap:
-
-     
+   
     def getIconCoords(self):
 
         MAX_GROUP_SIZE = 7
@@ -49,9 +49,10 @@ class PeriodicCoordinateMap:
 
                 x_end.append((group*x_to_next_icon) + initial_x + ele_icon_width)
                 y_end.append((period*y_to_next_icon) + initial_y + ele_icon_height)
-
-            #best way to return this? list_of_std_icons = zip(x_origins, y_origins, x_end, y_end)
-
+            
+            
+                list_of_icon_coords.append((x_origins[period], y_origins[period], x_end[period], y_end[period]))
+        
         #calculcate lantha/acti element icons
         for group in range(lantha_acti_count):
 
@@ -70,15 +71,15 @@ class PeriodicCoordinateMap:
                 x_end.append((group*x_to_next_icon) + init_l_a_coords[0] + ele_icon_width)
                 y_end.append((period*y_to_next_icon) + init_l_a_coords[1] + ele_icon_height)
 
-            #best way to return this? list_of_la_icons = zip(x_origins, y_origins, x_end, y_end)
+                list_of_icon_coords.append((x_origins[period], y_origins[period], x_end[period], y_end[period]))
 
         
         return list_of_icon_coords
-    
-icon_map = PeriodicCoordinateMap()
 
-list_of_icon_coords = icon_map.getIconCoords()
-
-for item in list_of_icon_coords:
-    print (item)
+#for testing        
+#icon_map = PeriodicCoordinateMap()
+#list_of_icon_coords = icon_map.getIconCoords()
+#print(type (list_of_icon_coords))
+#for item in list_of_icon_coords:
+#  print(item)
     
