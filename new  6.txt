@@ -1,0 +1,86 @@
+TILE_WIDTH 2
+Kind	 Location	 Time (ms)	 Message
+Generic	 main.cu::57	 13.300262	 Importing data and creating memory on host
+GPU	 main.cu::75	 0.576421	 Allocating GPU memory.
+GPU	 main.cu::88	 0.23396	 Copying input memory to the GPU.
+Compute	 main.cu::105	 2.152062	 Performing CUDA computation
+Copy	 main.cu::117	 0.247136	 Copying output memory to the CPU
+GPU	 main.cu::127	 0.150291	 Freeing GPU Memory
+Logger Output
+
+Level	 Location	 Message
+Trace	 main::72	 The dimensions of A are 200 x 100
+Trace	 main::73	 The dimensions of B are 100 x 256
+
+
+TILE_WIDTH 2 No sharing
+Timer Output
+Kind	 Location	 Time (ms)	 Message
+Generic	 main.cu::65	 13.279679	 Importing data and creating memory on host
+GPU	 main.cu::80	 0.261431	 Allocating GPU memory.
+GPU	 main.cu::92	 0.224195	 Copying input memory to the GPU.
+		Compute	 main.cu::107	 3.059372	 Performing CUDA computation
+Copy	 main.cu::119	 0.243246	 Copying output memory to the CPU
+GPU	 main.cu::127	 0.136421	 Freeing GPU Memory
+Logger Output
+Level	 Location	 Message
+Trace	 main::77	 The dimensions of A are 200 x 100
+Trace	 main::78	 The dimensions of B are 100 x 256
+
+TILE_WIDTH 2 SHARING
+Timer Output 
+Kind	 Location	 Time (ms)	 Message
+Generic	 main.cu::78	 12.542328	 Importing data and creating memory on host
+GPU	 main.cu::93	 0.45369	 Allocating GPU memory.
+GPU	 main.cu::105	 0.229075	 Copying input memory to the GPU.
+		Compute	 main.cu::120	 2.484664	 Performing CUDA computation
+Copy	 main.cu::132	 0.241643	 Copying output memory to the CPU
+GPU	 main.cu::140	 0.136063	 Freeing GPU Memory
+Logger Output
+Level	 Location	 Message
+Trace	 main::90	 The dimensions of A are 200 x 100
+Trace	 main::91	 The dimensions of B are 100 x 256
+
+TILE_WIDTH 8 SHARING
+Kind	 Location	 Time (ms)	 Message
+Generic	 main.cu::78	 12.628075	 Importing data and creating memory on host
+GPU	 main.cu::93	 0.222615	 Allocating GPU memory.
+GPU	 main.cu::105	 0.16901	 Copying input memory to the GPU.
+Compute	 main.cu::120	 0.170565	 Performing CUDA computation
+Copy	 main.cu::132	 0.190569	 Copying output memory to the CPU
+GPU	 main.cu::140	 0.129503	 Freeing GPU Memory
+Logger Output
+Level	 Location	 Message
+Trace	 main::90	 The dimensions of A are 200 x 100
+Trace	 main::91	 The dimensions of B are 100 x 256
+
+
+TILE_WIDTH 16 SHARING
+Timer Output
+Kind	 Location	 Time (ms)	 Message
+Generic	 main.cu::78	 12.467523	 Importing data and creating memory on host
+GPU	 main.cu::93	 0.208702	 Allocating GPU memory.
+GPU	 main.cu::105	 0.168273	 Copying input memory to the GPU.
+		Compute	 main.cu::120	 0.150127	 Performing CUDA computation
+Copy	 main.cu::132	 0.187091	 Copying output memory to the CPU
+GPU	 main.cu::140	 0.128854	 Freeing GPU Memory
+Logger Output
+Level	 Location	 Message
+Trace	 main::90	 The dimensions of A are 200 x 100
+Trace	 main::91	 The dimensions of B are 100 x 256
+
+TILE_WIDTH 32 SHARING
+Timer Output
+Kind	 Location	 Time (ms)	 Message
+Generic	 main.cu::78	 12.520417	 Importing data and creating memory on host
+GPU	 main.cu::93	 0.209088	 Allocating GPU memory.
+GPU	 main.cu::105	 0.16779	 Copying input memory to the GPU.
+	Compute	 main.cu::120	 0.132271	 Performing CUDA computation
+Copy	 main.cu::132	 0.187118	 Copying output memory to the CPU
+GPU	 main.cu::140	 0.122948	 Freeing GPU Memory
+Logger Output
+Level	 Location	 Message
+Trace	 main::90	 The dimensions of A are 200 x 100
+Trace	 main::91	 The dimensions of B are 100 x 256
+
+

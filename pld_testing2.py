@@ -1,3 +1,6 @@
+#caleb meador 01/06/2014
+#adapted from http://www.tkdocs.com/tutorial/firstexample.html
+
 import sys
 sys.path.insert(0, 'c:\\users\\compy\\documents\\github\\pythonlearning')
 
@@ -21,18 +24,19 @@ class LewisDotApp:
     print(periodic_lbl_frame.grid_info())
     
     #pack image as label
-    # self.periodic_lbl = Label(periodic_lbl_frame, text="periodic_table")
-    # self.periodic_t = PhotoImage(file="Periodic_table.gif")
-    # self.periodic_lbl['image'] = self.periodic_t
-    # self.periodic_lbl.pack()
-    
-    self.canvas = Canvas(periodic_lbl_frame)
+    self.periodic_lbl = Label(periodic_lbl_frame, text="periodic_table")
     self.periodic_t = PhotoImage(file="Periodic_table.gif")
-    self.canvas.create_image((400,200), image=self.periodic_t)
-    self.canvas.pack()
+    self.periodic_lbl['image'] = self.periodic_t
+    self.periodic_lbl.pack()
     
-    canvas_xy = self.canvas.bbox(ALL)
-    print(canvas_xy)
+    # self.canvas = Canvas(periodic_lbl_frame)
+    # self.periodic_t = PhotoImage(file="Periodic_table.gif")
+    # self.canvas.create_image((400,200), image=self.periodic_t)
+		# #self.canvas.create
+    # self.canvas.pack()
+    
+    #canvas_xy = self.canvas.bbox(ALL)
+    #print(canvas_xy)
     
     
     
