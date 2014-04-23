@@ -2,102 +2,278 @@
 #Recursively search through folders for .aspx and aspx.cs files and 
 # inject code to display the page source code
 #
-#building up to adapation for database project formatting
-#some code adapted from http://www.diveintopython3.net/porting-code-to-python-3-with-2to3.html
+# see what buttons this source code injected: http://jcmeador.azurewebsites.net/
+# under AdvWebDev home / about
+#
+
 
 import os, re, sys, string
 from os.path import join, getsize
 
-#regex object checks that file ends in sql or mysql and is a lab/exercise
-# formEndTag = re.compile(r"""
-       # \b</form>\b        #find the closing form tag""", re.VERBOSE)
- 
-# headEndTag = re.compile(r"""
- # \b</head>\b    #find the closing head tag""", re.X | re.M) #verbose and multiline mode
+
+#global consts
+EXT_PART = 2
+FILE_PART = 0
+HEAD_TAG = '(<\/head>)'
+FORM_TAG = '(<\/form>)'
+CONTENT_TAG = '(<\/asp\:Content>)' # <asp:Content>
+MASTER_FILE = r"MasterPageFile"
+END_BRACKET = '\s*\}\s*(\})\s*\Z'
+END_BRACKET_ALT = '(\})\Z'
+SKIP_TAGS = (r"syntaxhighlighter", r"btnCodeDisplay", r"btn")
+VIEW_EXTS = ('aspx', 'master')
+CONTROL_EXTS = ('aspx.cs', 'master.cs')
+CLASS_EXTS = ('.cs')
+STYLE_EXTS = ('.css')
 
 
-filecount = 0
-matchcount = 0
-   
-for root, dirs, files in os.walk('.'):
-  print(root, "~", dirs, "~", files, "~\n\n") #debug
-  for name in files:
-    if name.rpartition(".")[4] == 'aspx':               #test filename
-      filecount += 1
-      filepath = os.path.join(root, name)             #create pathstring
-      print('\n\n************************************\n',filepath)
-      infile = open(filepath, "r+")
-      
-      code = infile.read()
-      
-      matches = re.subn(r'</head>', injectAspxHead, code)
-      
-      print(matches)
-      
-      matches = re.subn(r'</form>', injectAspxCode, code)  
 
-      print(matches)
-
-      print()
-      
-      print('Filecount:', filecount, '\nMatchcount: ', matchcount)
-      
-      code = py2printpipe.sub(r'print(\2, file=\1)', code)
-      
-      #go to start and rewrite file
-      infile.seek(0)
-      infile.write(code)
-      
-#execute    
-os.walk('.')
-
-def injectAspxHead():
-  return 
-    """
-    <script src="syntaxhighlighter/scripts/shCore.js"></script>
-    <script src="syntaxhighlighter/scripts/shBrushCSharp.js"></script>
-    <link href="syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" />
-    <script type="text/javascript">SyntaxHighlighter.all();</script>
-    </head>
-    """
-
-def injectAspxHead():
+#syntaxhighlighter files at master head
+def injectMasterHead(fileName, funcNameExt):
   return """
-    <asp:Button ID="btnCodeDisplay" runat="server" Text="Display Source Code" onClick="btnCodeDisplay_Click" CausesValidation="false"/>
-    <asp:Label ID="lblCodeDisplay" runat="server" Text="<pre class='brush: csharp;'/>" Visible ="false">
+    <%-- meadorjc: This code was inserted automatically using injectSourceCodeDisplay.py --%>
+    <script src="<%# ResolveUrl("~/packages/syntaxhighlighter/scripts/shCore.js") %>"></script>
+    <script src="<%# ResolveUrl("~/packages/syntaxhighlighter/scripts/shBrushCSharp.js") %>"></script>
+    <link href="<%# ResolveUrl("~/packages/syntaxhighlighter/styles/shCoreDefault.css") %>" rel="stylesheet" />
+    <script type="text/javascript">SyntaxHighlighter.all();</script>
+    """
+
+#syntaxhighlighter files at aspx head
+def injectAspxHead(fileName, funcNameExt):
+  return """
+    <%-- meadorjc: This code was inserted automatically using injectSourceCodeDisplay.py --%>
+    <script src="<%= ResolveUrl("~/packages/syntaxhighlighter/scripts/shCore.js") %>"></script>
+    <script src="<%= ResolveUrl("~/packages/syntaxhighlighter/scripts/shBrushCSharp.js") %>"></script>
+    <link href="<%= ResolveUrl("~/packages/syntaxhighlighter/styles/shCoreDefault.css") %>" rel="stylesheet" />
+    <script type="text/javascript">SyntaxHighlighter.all();</script>
+    """
+
+#button to display aspx-form source code
+def injectAspxForm(fileName, funcNameExt):
+  return """
+    <%-- meadorjc: This code was inserted automatically using injectSourceCodeDisplay.py --%>
+    <asp:Button ID="btnCodeDisplay"""+funcNameExt+"""" runat="server" Text="Display """+re.sub('\_', '.', funcNameExt[1:])+""" Code" onClick="btnCodeDisplay"""+funcNameExt+"""_Click" CausesValidation="false"/>
+    <asp:Label ID="lblCodeDisplay"""+funcNameExt+ """" runat="server" Text="" Visible ="false">
     </asp:Label>
     <style type="text/css">
-    #btnCodeDisplay { margin-top:1em !Important; margin-right: 50% !Important;}
-    </style>
-    </form>   
+    #btnCodeDisplay"""+funcNameExt+""" { margin-top:1em !Important; margin-right: 50% !Important;}
+    </style>  
     """
+# C# source code to manipulate button, get and display source code
+def injectCSCode(fileName, funcNameExt):
+  return """
+    /*meadorjc: This code was inserted automatically using injectSourceCodeDisplay.py*/
+    private string csCode = null;
+    
+    protected String getCode()
+    {
 
+      string csFileName = Page.Server.MapPath(Page.AppRelativeVirtualPath + ".cs");
+      System.IO.StreamReader csFile = new System.IO.StreamReader(csFileName);
+      string csCode = csFile.ReadToEnd();
+      
+      csFile.Close();
+      
+      return csCode;
 
+    }
+    protected void btnCodeDisplay"""+funcNameExt+"""_Click(object sender, EventArgs e)
+    {
+      if (csCode == null)
+      {
+        csCode = getCode();
+        lblCodeDisplay"""+funcNameExt+""".Text = ("<pre class='brush: csharp;'/>"+csCode+"</pre>");
+      }
+              
+      if (lblCodeDisplay"""+funcNameExt+""".Visible == false)
+      {
+        lblCodeDisplay"""+funcNameExt+""".Visible = true;
+        btnCodeDisplay"""+funcNameExt+""".Text = "Hide """+re.sub('\_', '.', funcNameExt[1:])+""" Source Code";
+      }
+      else
+      {
+        btnCodeDisplay"""+funcNameExt+""".Text = "Display """+re.sub('\_', '.', funcNameExt[1:])+""" Source Code";
+        lblCodeDisplay"""+funcNameExt+""".Visible = false;
+      }
+    }
+"""
+#inject code into pre-existing code @ specific regex match objects
+def injectCode(matchObject, functName, fileName, funcNameExt):
+    if matchObject:
+      return matchObject.string[matchObject.pos:matchObject.start(1)-1]+functName(fileName, funcNameExt)+matchObject.string[matchObject.start(1):matchObject.endpos]
 
+#make a backup of original file
+def backupFile(fileObject, filePath):
+  fileData = fileObject.read()
+  oldFile = open(filePath+".old", "w")
+  oldFile.write(fileData)
+  oldFile.close()
+ 
+#multiple matches happen; get the last one found
+def getLastMatch(regexObject, code):
+    finalMatch = None
+    matchIter = regexObject.finditer(code)
+    for match in matchIter:
+      finalMatch = match
+    return finalMatch
 
+#any injected code already found?
+def injectedCodeCheck(code):
+  for tag in SKIP_TAGS:
+    match = re.search(tag, code)
+    if match:
+      print(match.group(0))
+      return True
+  return False
 
-# # sofar = 0
-# # headercheck = re.compile(r'^#C', re.IGNORECASE)
-# # header = "#Caleb Meador meadorjc at gmail.com\n"
-# # for item in objects:
-  # # size = os.path.getsize(item)
-  # # print(item, "\t", size, "\n")
-  # # if (item != '.git' and item != 'README.md'):
-    # # file = open(item, "r+")
-    # # print(file.readline(), "\n")
-    # # file.seek(0)
-    # # if headercheck.search(file.readline()) == None:
-      # # print("\ttrue\n")
-      # # file.seek(0)
-      # # text = file.read()
-      # # file.seek(0)
-      # # file.write(header)
-      # # file.write(text)
-    # # else:
-      # # print("\tfalse\n")
-    # # if size > sofar:
-    # # sofar = size
-    # # name = item
-# # print("Largest file is ", name, " at ", str(sofar), " bytes")
-# # changed = os.path.getmtime(name)
-# # reform = time.ctime(changed)
+#always inject HEAD code, and either ASPX FORM code or MASTER file code
+def putAspxCode(funcNameExt, filepath):
+        
+      aspxFile = open(filepath, "r+")
+      aspxCode = aspxFile.read()
+     
+      if injectedCodeCheck(aspxCode):
+        aspxFile.close()
+        print("CODE PREVIOUSLY MODIFIED: CONTINUING")
+        return
+
+      backupFile(aspxFile, filepath)
+      
+      #EITHER FORM or MASTER TAG
+      print("\nInserting script links")
+
+      #inject references @ </head>
+      aspxHead = re.compile(HEAD_TAG)
+      aspxHeadMatches = aspxHead.search(aspxCode)
+    
+      if re.search(MASTER_FILE, aspxCode):
+        if aspxHeadMatches:
+          aspxCode = injectCode(aspxHeadMatches, injectMasterHead, filepath, funcNameExt)
+        aspxContentTag = re.compile(CONTENT_TAG)
+        matchObject = getLastMatch(aspxContentTag, aspxCode)
+      else:
+        if aspxHeadMatches:
+          aspxCode = injectCode(aspxHeadMatches, injectAspxHead, filepath, funcNameExt)
+        aspxFormTag = re.compile(FORM_TAG)
+        matchObject = aspxFormTag.search(aspxCode)
+      print("\nInserting aspx code")
+      aspxCode = injectCode(matchObject, injectAspxForm, filepath, funcNameExt)
+
+      #go to start and rewrite file
+      aspxFile.seek(0)
+      aspxFile.write(aspxCode)
+      aspxFile.close()
+      
+#always inject HEAD code, and either ASPX FORM code or MASTER file code
+def putClassCode(funcNameExt, filepath):
+        
+      file = open(filepath, "r+")
+      code = file.read()
+     
+      if injectedCodeCheck(code):
+        file.close()
+        print("CODE PREVIOUSLY MODIFIED: CONTINUING")
+        return
+
+      backupFile(aspxFile, filepath)
+      
+      #EITHER FORM or MASTER TAG
+      print("\nInserting script links")
+
+      #inject references @ </head>
+      aspxHead = re.compile(HEAD_TAG)
+      aspxHeadMatches = aspxHead.search(aspxCode)
+    
+      if re.search(MASTER_FILE, aspxCode):
+        if aspxHeadMatches:
+          aspxCode = injectCode(aspxHeadMatches, injectMasterHead, filepath, funcNameExt)
+        aspxContentTag = re.compile(CONTENT_TAG)
+        matchObject = getLastMatch(aspxContentTag, aspxCode)
+      else:
+        if aspxHeadMatches:
+          aspxCode = injectCode(aspxHeadMatches, injectAspxHead, filepath, funcNameExt)
+        aspxFormTag = re.compile(FORM_TAG)
+        matchObject = aspxFormTag.search(aspxCode)
+      print("\nInserting aspx code")
+      aspxCode = injectCode(matchObject, injectAspxForm, filepath, funcNameExt)
+
+      #go to start and rewrite file
+      aspxFile.seek(0)
+      aspxFile.write(aspxCode)
+      aspxFile.close()
+      
+#Put CS code after before last bracket.
+def putCsCode(funcNameExt, filepath):      
+      
+      funcNameExt = funcNameExt.rstrip(".cs")
+
+      csFile = open(filepath, "r+")
+      csCode = csFile.read()
+      
+      if injectedCodeCheck(csCode):
+        csFile.close()
+        print("CODE PREVIOUSLY MODIFIED: CONTINUING")
+        return
+      
+      backupFile(csFile, filepath)
+      
+      #find "}\n}\nEOF" or something like it
+      endBracket = re.compile(END_BRACKET_ALT)
+      
+      print("\nInserting CS code")
+      
+      #inject references
+      csMatch = getLastMatch(endBracket, csCode)
+      if (csMatch):
+        csCode = injectCode(csMatch, injectCSCode, filepath, funcNameExt)
+
+      
+      #go to start and rewrite file
+      csFile.seek(0)
+      csFile.write(csCode)
+      csFile.close()
+ 
+def main():
+  filecount = 0
+  path = "."
+  
+  if len(sys.argv) > 1:
+    path = sys.argv[1]
+    
+  
+  #recursively move through files
+  for root, dirs, files in os.walk(path):
+    for name in files:
+
+      filepath = os.path.join(root, name)         
+      #rpartition() maybe?  .split(".")
+      namePart = name.partition(".")
+      
+      filecount += 1
+      print("\n\t",namePart, "FileCount", filecount)
+       
+      #create extension "_fileName_ext"
+      funcNameExt = '_'+namePart[FILE_PART]+'_'+namePart[EXT_PART]
+      funcNameExt = re.sub('\-', '', funcNameExt)
+      
+      #insert code in .aspx and .master files
+      if namePart[EXT_PART] in VIEW_EXTS:
+        putAspxCode(funcNameExt, filepath)
+      
+      #insert code in aspx.cs and master.cs files
+      if namePart[EXT_PART] in CONTROL_EXTS:
+        putCsCode(funcNameExt, filepath)
+        
+      
+      #To be implemented later to test classes, etc.
+      # if namePart[EXT_PART] in CLASS_EXTS:
+        # putClassCode(funcNameExt, filepath)
+      # if namePart[EXT_PART] in STYLE_EXTS:
+        # putCSSCode(funcNameExt, filepath)
+        
+      
+        
+if "__main__" == __name__:
+  main()
+
+    
