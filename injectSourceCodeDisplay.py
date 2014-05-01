@@ -23,8 +23,8 @@ END_BRACKET_ALT = '(\})\Z'
 SKIP_TAGS = (r"syntaxhighlighter", r"btnCodeDisplay", r"btn")
 VIEW_EXTS = ('aspx', 'master')
 CONTROL_EXTS = ('aspx.cs', 'master.cs')
-CLASS_EXTS = ('.cs')
-STYLE_EXTS = ('.css')
+CLASS_EXTS = ('cs')
+STYLE_EXTS = ('css')
 
 
 
@@ -59,16 +59,35 @@ def injectAspxForm(fileName, funcNameExt):
     #btnCodeDisplay"""+funcNameExt+""" { margin-top:1em !Important; margin-right: 50% !Important;}
     </style>  
     """
+#button to display aspx-form source code
+def openCodeDDL(fileName, funcNameExt):
+  return """
+    <%-- meadorjc: This code was inserted automatically using injectSourceCodeDisplay.py --%>
+    <asp:DropDownList ID="ddlCodeDisplay"""+funcNameExt+"""" runat="server" AutoPostBack="True" OnSelectedIndexChanged="ddlCodeDisplay"""+funcNameExt+"""_SelectedIndexChanged">
+    """    
+    <style type="text/css">
+    #ddlCodeDisplay"""+funcNameExt+""" { margin-top:1em !Important; margin-right: 50% !Important;}
+    </style>  
+def injectCodeListItems(filename, funcNameExt)
+  return """
+  <asp:ListItem Text="name" Value="&quot;~/AdvWebDev/&quot;"></asp:ListItem>
+            </asp:DropDownList>
+
+"""
+
+def closeCodeDDL            
+            
 # C# source code to manipulate button, get and display source code
+#formerly string csFileName = Page.Server.MapPath(Page.AppRelativeVirtualPath + ".cs");
 def injectCSCode(fileName, funcNameExt):
   return """
     /*meadorjc: This code was inserted automatically using injectSourceCodeDisplay.py*/
     private string csCode = null;
     
-    protected String getCode()
+    protected String getCode(string url)
     {
 
-      string csFileName = Page.Server.MapPath(Page.AppRelativeVirtualPath + ".cs");
+      string csFileName = ResolveUrl(url);
       System.IO.StreamReader csFile = new System.IO.StreamReader(csFileName);
       string csCode = csFile.ReadToEnd();
       
@@ -79,12 +98,7 @@ def injectCSCode(fileName, funcNameExt):
     }
     protected void btnCodeDisplay"""+funcNameExt+"""_Click(object sender, EventArgs e)
     {
-      if (csCode == null)
-      {
-        csCode = getCode();
-        lblCodeDisplay"""+funcNameExt+""".Text = ("<pre class='brush: csharp;'/>"+csCode+"</pre>");
-      }
-              
+             
       if (lblCodeDisplay"""+funcNameExt+""".Visible == false)
       {
         lblCodeDisplay"""+funcNameExt+""".Visible = true;
@@ -94,6 +108,15 @@ def injectCSCode(fileName, funcNameExt):
       {
         btnCodeDisplay"""+funcNameExt+""".Text = "Display """+re.sub('\_', '.', funcNameExt[1:])+""" Source Code";
         lblCodeDisplay"""+funcNameExt+""".Visible = false;
+      }
+    }
+    
+    protected void ddlCodeDisplay"""+funcNameExt+"""_SelectedIndexChanged(object sender, EventArgs e)
+    {
+      if (csCode == null)
+      {
+        csCode = getCode(ddlCodeDisplay"""+funcNameExt+""".SelectedValue.ToString());
+        lblCodeDisplay"""+funcNameExt+""".Text = ("<pre class='brush: csharp;'/>"+csCode+"</pre>");
       }
     }
 """
@@ -158,7 +181,16 @@ def putAspxCode(funcNameExt, filepath):
         matchObject = aspxFormTag.search(aspxCode)
       print("\nInserting aspx code")
       aspxCode = injectCode(matchObject, injectAspxForm, filepath, funcNameExt)
-
+      
+      class_filepath_list = []
+      root_list = filepath.split("\\")
+      app_code_path = root_list[1]+"\\App_Code\\"
+      for root, dirs, files in os.walk(app_code_path):
+        for class_file in files:
+          class_file_path = os.path.join(root, class_file)
+          aspxCode = injectCode(matchObject, injectClassButtons, class_file_path, funcNameExt)
+          
+      
       #go to start and rewrite file
       aspxFile.seek(0)
       aspxFile.write(aspxCode)
@@ -232,7 +264,27 @@ def putCsCode(funcNameExt, filepath):
       csFile.seek(0)
       csFile.write(csCode)
       csFile.close()
- 
+
+def getClassLists(path):
+  site_list = []
+  temp_file_list = []
+  list_of_file_lists = []
+  
+  for root, dirs, files in os.walk(path):
+    root_split = root.split("\\")
+    if len(root_split) > 1 and root_split[1] not in site_list:
+      site_list.append(root_split[1])
+      if temp_file_list != []:
+        list_of_file_lists.append(temp_file_list)
+      temp_file_list = []
+    for file in files:
+      file_ext = file.partition(".")[2]
+      if  file_ext in CLASS_EXTS:
+        temp_file_list.append(file)
+  
+  return [site_list, list_of_file_lists]
+
+      
 def main():
   filecount = 0
   path = "."
@@ -240,17 +292,19 @@ def main():
   if len(sys.argv) > 1:
     path = sys.argv[1]
     
+  class_list = []
+  class_list = getClassLists(path)
   
   #recursively move through files
   for root, dirs, files in os.walk(path):
     for name in files:
-
+   
       filepath = os.path.join(root, name)         
       #rpartition() maybe?  .split(".")
       namePart = name.partition(".")
       
       filecount += 1
-      print("\n\t",namePart, "FileCount", filecount)
+      print("\n\t", namePart, "FileCount", filecount)
        
       #create extension "_fileName_ext"
       funcNameExt = '_'+namePart[FILE_PART]+'_'+namePart[EXT_PART]
@@ -263,13 +317,11 @@ def main():
       #insert code in aspx.cs and master.cs files
       if namePart[EXT_PART] in CONTROL_EXTS:
         putCsCode(funcNameExt, filepath)
-        
       
       #To be implemented later to test classes, etc.
-      # if namePart[EXT_PART] in CLASS_EXTS:
+      #if namePart[EXT_PART] in CLASS_EXTS:
         # putClassCode(funcNameExt, filepath)
-      # if namePart[EXT_PART] in STYLE_EXTS:
-        # putCSSCode(funcNameExt, filepath)
+
         
       
         
