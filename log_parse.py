@@ -9,7 +9,7 @@ LOG_LOCATION = '.\log_test_py.txt'
 WATCH_PHRASE = 'immolated in flame'
  
 #Replace with number of seconds to count
-START_TIME = 12
+SECONDS = 12
  
 def main():
 
@@ -44,7 +44,7 @@ def main():
 
 					start_cd = time.time()		#start timer
 					print('***', line, '***')
-					for countdown in reversed(range(1, START_TIME+1)):
+					for countdown in reversed(range(1, SECONDS+1)):
 						time.sleep(1)
 						print('\t',countdown)
 
